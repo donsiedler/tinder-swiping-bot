@@ -139,11 +139,18 @@ while cards_available:
         except ElementNotInteractableException:  # Catch preview
             print("Preview detected! Breaking the loop...")
             break
-        except ElementClickInterceptedException:
+        except ElementClickInterceptedException:  # 'Add to Home Screen' modal
             print("Annoying modal detected! Trying to close it...")
-            time.sleep(1)
-            close_modal_btn = driver.find_element(By.XPATH, '/html/body/div[2]/main/div/div[2]/button[2]')
-            close_modal_btn.click()
+            time.sleep(2)
+            try:
+                close_modal_btn = driver.find_element(By.XPATH, "/html/body/div[2]/main/div/div[2]/button[2]")
+                close_modal_btn.click()
+            except ElementClickInterceptedException:  # 'Out of likes' modal
+                print("Looks like we're out of likes! Closing the modal and the browser.")
+                close_modal_btn = driver.find_element(By.XPATH, "/html/body/div[2]/main/div/div[3]/button[2]")
+                close_modal_btn.click()
+                time.sleep(10)
+                driver.quit()
         else:
             print(f"Pic #{index + 1} - sleeping for 3s...")
             time.sleep(3)

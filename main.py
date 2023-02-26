@@ -66,7 +66,7 @@ while not tinder_loaded:
             By.XPATH, '//*[@id="c160459658"]/main/div/div/div/div[3]/button[1]/div[2]/div[2]'
         )
     except NoSuchElementException:
-        print("Tinder hasn't loaded yet! Going to sleep for 10 seconds...")
+        print("Tinder hasn't loaded yet - sleeping for 10s...")
         time.sleep(10)
     else:
         tinder_loaded = True
@@ -83,47 +83,50 @@ reject_cookies_btn = driver.find_element(By.XPATH, '//*[@id="c-60880778"]/div/di
 reject_cookies_btn.click()
 time.sleep(5)
 
-# Try to locate the card. Go to sleep if not available
-card_loaded = None
-retries = 0
+cards_available = True
 
-while not card_loaded:
+while cards_available:
 
-    # Refresh the page after 5 retries to load a card.
-    if retries == 5:
-        print("That didn't work... Refreshing page.")
-        driver.refresh()
+    # Try to locate the card. Go to sleep if not available
+    card_loaded = None
+    retries = 0
 
-    try:
-        bullets_div = driver.find_element(By.XPATH,
-                                          '//*[@id="c-60880778"]/div/div[1]/div/main/div[1]/div/div/div[1]/div['
-                                          '1]/div/div[2]/div[1]/div[2]'
-                                          )
-        bullets = bullets_div.find_elements(By.TAG_NAME, "button")
+    while not card_loaded:
 
-    except NoSuchElementException:
-        print("There are no results. Going to sleep to 10 s...")
-        time.sleep(10)
-        retries += 1
-    else:
-        pics_count = len(bullets)
-        print(f"There are {pics_count} pictures available!")
-        card_loaded = True
+        # Refresh the page after 5 retries to load a card.
+        if retries == 5:
+            print("That didn't work - refreshing the page.")
+            driver.refresh()
 
+        try:
+            bullets_div = driver.find_element(By.XPATH,
+                                              '//*[@id="c-60880778"]/div/div[1]/div/main/div[1]/div/div/div[1]/div['
+                                              '1]/div/div[2]/div[1]/div[2]'
+                                              )
+            bullets = bullets_div.find_elements(By.TAG_NAME, "button")
 
-# Browse photos
-for bullet in bullets:
-    print("Yes, yes, very nice - sleeping for 3s...")
+        except NoSuchElementException:
+            print("No results - sleeping for 10s...")
+            time.sleep(10)
+            retries += 1
+        else:
+            pics_count = len(bullets)
+            print(f"There are {pics_count} pictures available!")
+            card_loaded = True
+
+    # Browse photos
+    for bullet in bullets:
+        print("Yes, yes, very nice - sleeping for 3s...")
+        time.sleep(3)
+        bullet.click()
+
     time.sleep(3)
-    bullet.click()
+    like_btn = driver.find_element(
+        By.XPATH, "/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[3]/div/div[4]/button"
+    )
 
-time.sleep(3)
-like_btn = driver.find_element(
-    By.XPATH, '//*[@id="c-60880778"]/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[3]/div/div[4]/button'
-)
+    nope_btn = driver.find_element(
+        By.XPATH, "/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[3]/div/div[2]/button"
+    )
 
-nope_btn = driver.find_element(
-    By.XPATH, '//*[@id="c-60880778"]/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[4]/div/div[2]/button'
-)
-print(like_btn.text)
-print(nope_btn.text)
+    like_btn.click()

@@ -2,10 +2,11 @@ import os
 import time
 
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException
-from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException, \
+    ElementClickInterceptedException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 
 FACEBOOK_EMAIL = os.environ.get("FACEBOOK_EMAIL")
@@ -93,14 +94,13 @@ while cards_available:
 
     while not card_loaded:
 
-        time.sleep(3)
-
         # Refresh the page after 5 retries to load a card.
         if retries == 3:
-            print("That didn't work - refreshing the page.")
+            print("That didn't work - refreshing the page...")
             driver.refresh()
 
         try:
+            time.sleep(10)
             bullets_div = driver.find_element(By.XPATH,
                                               '//*[@id="c-60880778"]/div/div[1]/div/main/div[1]/div/div/div[1]/div['
                                               '1]/div/div[2]/div[1]/div[2]'
@@ -108,29 +108,62 @@ while cards_available:
             bullets = bullets_div.find_elements(By.TAG_NAME, "button")
 
         except NoSuchElementException:
-            print("No results - sleeping for 5s...")
-            time.sleep(5)
-            retries += 1
+            print("Couldn't find any bullets - checking if this is a single picture card...")
+            try:
+                btns = driver.find_elements(By.CSS_SELECTOR, "span.Hidden")
+                for btn in btns:
+                    if btn.text == "Like":
+                        like_btn = btn
+                    elif btn.text == "Nope":
+                        nope_btn = btn
+                    else:
+                        print("Neither of the available buttons is like/hope - going ahead...")
+                        continue
+            except NoSuchElementException:
+                # Couldn't find the buttons - card hasn't been loaded yet - sleeping for 5s...
+                print("Couldn't find any buttons - sleeping for 5s and retrying..")
+                time.sleep(5)
+                retries += 1
+            else:  # Try block successful
+                print("Like/nope buttons found. Click!")
+                like_btn.click()
         else:
             pics_count = len(bullets)
             print(f"There are {pics_count} pictures available!")
             card_loaded = True
 
     # Browse photos
-    for bullet in bullets:
-        print("Yes, yes, very nice - sleeping for 3s...")
-        time.sleep(3)
+    for index, bullet in enumerate(bullets):
         try:
             bullet.click()
         except ElementNotInteractableException:  # Catch preview
+            print("Preview detected! Breaking the loop...")
             break
+        except ElementClickInterceptedException:
+            print("Annoying modal detected! Trying to close it...")
+            time.sleep(1)
+            close_modal_btn = driver.find_element(By.XPATH, '/html/body/div[2]/main/div/div[2]/button[2]')
+            close_modal_btn.click()
+        else:
+            print(f"Pic #{index + 1} - sleeping for 3s...")
+            time.sleep(3)
 
-    like_btn = driver.find_element(
-        By.XPATH, "/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[3]/div/div[4]/button"
-    )
+    time.sleep(3)
 
-    nope_btn = driver.find_element(
-        By.XPATH, "/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[3]/div/div[2]/button"
-    )
+    try:
+        like_btn = driver.find_element(
+            By.XPATH, "/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[3]/div/div[4]/button"
+        )
+
+        nope_btn = driver.find_element(
+            By.XPATH, "/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[3]/div/div[2]/button"
+        )
+    except NoSuchElementException:
+        print("Couldn't find like/nope button :( Trying an alternative...")
+        for btn in driver.find_elements(By.CSS_SELECTOR, "span.Hidden"):
+            if btn.text == "Like":
+                like_btn = btn
+            elif btn.text == "Nope":
+                nope_btn = btn
 
     like_btn.click()

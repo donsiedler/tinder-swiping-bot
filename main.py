@@ -2,7 +2,7 @@ import os
 import time
 
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -93,8 +93,10 @@ while cards_available:
 
     while not card_loaded:
 
+        time.sleep(3)
+
         # Refresh the page after 5 retries to load a card.
-        if retries == 5:
+        if retries == 3:
             print("That didn't work - refreshing the page.")
             driver.refresh()
 
@@ -106,8 +108,8 @@ while cards_available:
             bullets = bullets_div.find_elements(By.TAG_NAME, "button")
 
         except NoSuchElementException:
-            print("No results - sleeping for 10s...")
-            time.sleep(10)
+            print("No results - sleeping for 5s...")
+            time.sleep(5)
             retries += 1
         else:
             pics_count = len(bullets)
@@ -118,9 +120,11 @@ while cards_available:
     for bullet in bullets:
         print("Yes, yes, very nice - sleeping for 3s...")
         time.sleep(3)
-        bullet.click()
+        try:
+            bullet.click()
+        except ElementNotInteractableException:  # Catch preview
+            break
 
-    time.sleep(3)
     like_btn = driver.find_element(
         By.XPATH, "/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[3]/div/div[4]/button"
     )

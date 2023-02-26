@@ -32,13 +32,16 @@ fb_login_btn = driver.find_element(By.XPATH,
                                    '//*[@id="c160459658"]/main/div/div/div[1]/div/div/div[3]/span/div[2]/button')
 fb_login_btn.click()
 
-# Allow cookies
+# Switch to Facebook window and allow cookies
+tinder_window = driver.window_handles[0]
+fb_login_window = driver.window_handles[1]
+driver.switch_to.window(fb_login_window)
+
 time.sleep(SLEEP_TIME)
 buttons = driver.find_elements(By.TAG_NAME, "button")
 
 # Find the correct cookie button
 for btn in buttons:
-    print(btn.text)
     if btn.get_attribute("title") == "Only allow essential cookies":
         btn.click()
 
@@ -51,3 +54,21 @@ sign_in_btn = driver.find_element(By.NAME, "login")
 email_input.send_keys(FACEBOOK_EMAIL)
 password_input.send_keys(FACEBOOK_PASSWORD)
 sign_in_btn.click()
+
+# Switch back to Tinder window: allow location, disable notifications, reject cookies
+driver.switch_to.window(tinder_window)
+time.sleep(5)  # Wait a bit longer here
+
+allow_location_btn = driver.find_element(By.XPATH, '//*[@id="c160459658"]/main/div/div/div/div[3]/button[1]/div['
+                                                   '2]/div[2]')
+allow_location_btn.click()
+
+time.sleep(SLEEP_TIME)
+disable_notifications_btn = driver.find_element(By.XPATH, '//*[@id="c160459658"]/main/div/div/div/div[3]/button['
+                                                          '2]/div[2]/div[2]')
+disable_notifications_btn.click()
+
+time.sleep(SLEEP_TIME)
+reject_cookies_btn = driver.find_element(By.XPATH, '//*[@id="c-60880778"]/div/div[2]/div/div/div[1]/div['
+                                                   '2]/button/div[2]/div[2]')
+reject_cookies_btn.click()

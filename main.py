@@ -2,6 +2,7 @@ import os
 import time
 
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -57,11 +58,19 @@ sign_in_btn.click()
 
 # Switch back to Tinder window: allow location, disable notifications, reject cookies
 driver.switch_to.window(tinder_window)
-time.sleep(5)  # Wait a bit longer here
 
-allow_location_btn = driver.find_element(By.XPATH, '//*[@id="c160459658"]/main/div/div/div/div[3]/button[1]/div['
-                                                   '2]/div[2]')
-allow_location_btn.click()
+tinder_loaded = None
+while not tinder_loaded:
+    try:
+        allow_location_btn = driver.find_element(
+            By.XPATH, '//*[@id="c160459658"]/main/div/div/div/div[3]/button[1]/div[2]/div[2]'
+        )
+    except NoSuchElementException:
+        print("Tinder hasn't loaded yet! Going to sleep for 10 seconds...")
+        time.sleep(10)
+    else:
+        tinder_loaded = True
+        allow_location_btn.click()
 
 time.sleep(SLEEP_TIME)
 disable_notifications_btn = driver.find_element(By.XPATH, '//*[@id="c160459658"]/main/div/div/div/div[3]/button['
@@ -72,3 +81,39 @@ time.sleep(SLEEP_TIME)
 reject_cookies_btn = driver.find_element(By.XPATH, '//*[@id="c-60880778"]/div/div[2]/div/div/div[1]/div['
                                                    '2]/button/div[2]/div[2]')
 reject_cookies_btn.click()
+time.sleep(5)
+
+# Try to locate the card. Go to sleep if not available
+card_loaded = None
+while not card_loaded:
+    try:
+        bullets_div = driver.find_element(By.XPATH,
+                                          '//*[@id="c-60880778"]/div/div[1]/div/main/div[1]/div/div/div[1]/div['
+                                          '1]/div/div[2]/div[1]/div[2]'
+                                          )
+        bullets = bullets_div.find_elements(By.TAG_NAME, "button")
+
+    except NoSuchElementException:
+        print("There are no results. Going to sleep to 10 s...")
+        time.sleep(10)
+    else:
+        pics_count = len(bullets)
+        print(f"There are {pics_count} pictures available!")
+        card_loaded = True
+
+
+# Browse photos
+for bullet in bullets:
+    print("Yes, yes, very nice - sleeping for 3s...")
+    time.sleep(3)
+    bullet.click()
+
+like_btn = driver.find_element(
+    By.XPATH, '//*[@id="c-60880778"]/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[3]/div/div[4]/button'
+)
+
+nope_btn = driver.find_element(
+    By.XPATH, '//*[@id="c-60880778"]/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[4]/div/div[2]/button'
+)
+print(like_btn.text)
+print(nope_btn.text)

@@ -85,7 +85,15 @@ time.sleep(5)
 
 # Try to locate the card. Go to sleep if not available
 card_loaded = None
+retries = 0
+
 while not card_loaded:
+
+    # Refresh the page after 5 retries to load a card.
+    if retries == 5:
+        print("That didn't work... Refreshing page.")
+        driver.refresh()
+
     try:
         bullets_div = driver.find_element(By.XPATH,
                                           '//*[@id="c-60880778"]/div/div[1]/div/main/div[1]/div/div/div[1]/div['
@@ -96,6 +104,7 @@ while not card_loaded:
     except NoSuchElementException:
         print("There are no results. Going to sleep to 10 s...")
         time.sleep(10)
+        retries += 1
     else:
         pics_count = len(bullets)
         print(f"There are {pics_count} pictures available!")
@@ -108,6 +117,7 @@ for bullet in bullets:
     time.sleep(3)
     bullet.click()
 
+time.sleep(3)
 like_btn = driver.find_element(
     By.XPATH, '//*[@id="c-60880778"]/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[3]/div/div[4]/button'
 )

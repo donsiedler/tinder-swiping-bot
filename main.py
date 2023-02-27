@@ -116,17 +116,29 @@ while cards_available:
                         like_btn = btn
                     elif btn.text == "Nope":
                         nope_btn = btn
-                    else:
-                        print("Neither of the available buttons is like/hope - going ahead...")
-                        continue
+                if not like_btn and not nope_btn:
+                    print("Neither of the available buttons is like/hope - going ahead...")
+
             except NoSuchElementException:
                 # Couldn't find the buttons - card hasn't been loaded yet - sleeping for 5s...
                 print("Couldn't find any buttons - sleeping for 5s and retrying..")
                 time.sleep(5)
                 retries += 1
             else:  # Try block successful
-                print("Like/nope buttons found. Click!")
-                like_btn.click()
+                if like_btn and nope_btn:
+                    print("Like/nope buttons found. Click!")
+                    like_btn.click()
+
+                    # Check for match
+                    try:
+                        close_button = driver.find_element(
+                            By.XPATH, '//*[@id="c-604412971"]/main/div/div[1]/div/div[4]/button'
+                        )
+                    except NoSuchElementException:
+                        print("It's not a match after all...")
+                    else:
+                        print("Close button found! It's a match!")
+                        close_button.click()
         else:
             pics_count = len(bullets)
             print(f"There are {pics_count} pictures available!")

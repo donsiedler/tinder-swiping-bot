@@ -3,7 +3,7 @@ import time
 
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException, \
-    ElementClickInterceptedException
+    ElementClickInterceptedException, StaleElementReferenceException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -126,7 +126,7 @@ while cards_available:
             bullets = bullets_div.find_elements(By.TAG_NAME, "button")
 
         except NoSuchElementException:
-            print("Couldn't find any bullets - checking if this is a single picture card...")
+            print("Couldn't find any bullets - checking if this is a single picture card with buttons...")
             try:
                 like_btn = driver.find_element(
                     By.XPATH,
@@ -137,43 +137,16 @@ while cards_available:
                     By.XPATH,
                     "/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[3]/div/div[2]/button"
                 )
-
             except NoSuchElementException:
-                btns = driver.find_elements(By.CSS_SELECTOR, "button span span span.Hidden")
-                like_btn = None
-                nope_btn = None
-
-                for btn in btns:
-                    print(btn.text)
-                    if btn.text == "LIKE":
-                        like_btn = btn
-                        print("Like button found!")
-                    elif btn.text == "NOPE":
-                        nope_btn = btn
-                        print("Nope button found!")
-                if not like_btn and not nope_btn:
-                    # Couldn't find the buttons - card hasn't been loaded yet - sleeping for 5s...
-                    print("Couldn't find like/nope buttons - sleeping for 5s and retrying..")
-                    time.sleep(5)
-                    retries += 1
-                else:
+                print("Buttons not found, but it still works...")
+                pass  # This exception has to be here even though it doesn't do anything...
+            finally:
+                try:
                     nope_btn.click()
-
-            else:  # Try block successful
-                if like_btn and nope_btn:
-                    print("Like/nope buttons found. Click!")
-                    like_btn.click()
-
-                    # Check for match
-                    try:
-                        close_button = driver.find_element(
-                            By.XPATH, '//*[@id="c-604412971"]/main/div/div[1]/div/div[4]/button'
-                        )
-                    except NoSuchElementException:
-                        print("It's not a match after all...")
-                    else:
-                        print("Close button found! It's a match!")
-                        close_button.click()
+                except StaleElementReferenceException:
+                    print("Button didn't work. Refreshing...")
+                    driver.refresh()
+                    time.sleep(10)
         else:
             pics_count = len(bullets)
             print(f"There are {pics_count} pictures available!")
@@ -213,10 +186,8 @@ while cards_available:
                     close_modal_btn.click()
 
         else:
-            print(f"Pic #{index + 1} - sleeping for 3s...")
-            time.sleep(3)
-
-    time.sleep(1)
+            print(f"Pic #{index + 1} - sleeping for 2s...")
+            time.sleep(2)
 
     try:
         like_btn = driver.find_element(
@@ -227,12 +198,10 @@ while cards_available:
             By.XPATH, "/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[3]/div/div[2]/button"
         )
     except NoSuchElementException:
-        print("Couldn't find like/nope button :( Trying an alternative...")
-        for btn in driver.find_elements(By.CSS_SELECTOR, "button span span span.Hidden"):
-            print(btn.text)
-            if btn.text == "LIKE":
-                like_btn = btn
-            elif btn.text == "NOPE":
-                nope_btn = btn
+        print("Buttons not found, but it still works...")
+        pass  # This exception has to be here even though it doesn't do anything...
 
-    nope_btn.click()
+    finally:
+        nope_btn.click()
+
+

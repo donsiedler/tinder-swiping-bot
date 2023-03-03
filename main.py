@@ -25,15 +25,15 @@ driver.get("https://tinder.com/")
 def login():
     # Proceed to log in
     time.sleep(SLEEP_TIME)
-    login_btn = driver.find_element(By.XPATH, '//*[@id="c-60880778"]/div/div[1]/div/main/div['
-                                              '1]/div/div/div/div/header/div/div[2]/div[2]/a')
+    login_btn = driver.find_element(By.XPATH, "/html/body/div[1]/div/div[1]/div/main/div["
+                                              "1]/div/div/div/div/header/div/div[2]/div[2]/a")
 
     login_btn.click()
 
     # Facebook login
     time.sleep(SLEEP_TIME)
-    fb_login_btn = driver.find_element(By.XPATH,
-                                       '//*[@id="c160459658"]/main/div/div/div[1]/div/div/div[3]/span/div[2]/button')
+    fb_login_btn = driver.find_element(By.XPATH, "/html/body/div[2]/main/div/div/div[1]/div/div/div[3]/span/div["
+                                                 "2]/button")
     fb_login_btn.click()
 
     # Switch to Facebook window and allow cookies
@@ -69,7 +69,7 @@ def close_popups():
         # Popups: allow location, disable notifications, reject cookies
         try:
             allow_location_btn = driver.find_element(
-                By.XPATH, '//*[@id="c160459658"]/main/div/div/div/div[3]/button[1]/div[2]/div[2]'
+                By.XPATH, "/html/body/div[2]/main/div/div/div/div[3]/button[1]"
             )
         except NoSuchElementException:
             print("Tinder hasn't loaded yet - sleeping for 5s...")
@@ -79,13 +79,11 @@ def close_popups():
             allow_location_btn.click()
 
     time.sleep(SLEEP_TIME)
-    disable_notifications_btn = driver.find_element(By.XPATH, '//*[@id="c160459658"]/main/div/div/div/div[3]/button['
-                                                              '2]/div[2]/div[2]')
+    disable_notifications_btn = driver.find_element(By.XPATH, "/html/body/div[2]/main/div/div/div/div[3]/button[2]")
     disable_notifications_btn.click()
 
     time.sleep(SLEEP_TIME)
-    reject_cookies_btn = driver.find_element(By.XPATH, '//*[@id="c-60880778"]/div/div[2]/div/div/div[1]/div['
-                                                       '2]/button/div[2]/div[2]')
+    reject_cookies_btn = driver.find_element(By.XPATH, '/html/body/div[1]/div/div[2]/div/div/div[1]/div[2]/button')
     reject_cookies_btn.click()
     time.sleep(2)
 
@@ -120,7 +118,7 @@ while cards_available:
         try:
             time.sleep(5)
             bullets_div = driver.find_element(By.XPATH,
-                                              '//*[@id="c-60880778"]/div/div[1]/div/main/div[1]/div/div/div[1]/div['
+                                              '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div['
                                               '1]/div/div[2]/div[1]/div[2]'
                                               )
             bullets = bullets_div.find_elements(By.TAG_NAME, "button")
@@ -142,7 +140,7 @@ while cards_available:
                 pass  # This exception has to be here even though it doesn't do anything...
             finally:
                 try:
-                    nope_btn.click()
+                    like_btn.click()
                 except StaleElementReferenceException:
                     print("Button didn't work. Refreshing...")
                     driver.refresh()
@@ -160,6 +158,21 @@ while cards_available:
         except ElementNotInteractableException:  # Preview still displaying
             print("Preview detected! Breaking the loop...")
             break
+
+        except StaleElementReferenceException:  # Single picture card
+            try:
+                like_btn = driver.find_element(
+                    By.XPATH,
+                    "/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[3]/div/div[4]/button"
+                )
+
+                nope_btn = driver.find_element(
+                    By.XPATH,
+                    "/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[3]/div/div[2]/button"
+                )
+            except NoSuchElementException:
+                print("Buttons not found, but it still works...")
+                pass  # This exception has to be here even though it doesn't do anything...
 
         except ElementClickInterceptedException:  # Modal found
             print("Modal detected! Figuring out what it is...")
@@ -202,6 +215,6 @@ while cards_available:
         pass  # This exception has to be here even though it doesn't do anything...
 
     finally:
-        nope_btn.click()
+        like_btn.click()
 
 
